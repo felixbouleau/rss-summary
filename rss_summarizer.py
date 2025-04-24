@@ -111,17 +111,27 @@ def main():
     """
     Main function to run the RSS summarizer.
     """
-    feed_url = "http://miniflux-ct:8084/?subreddit=worldnews&averagePostsPerDay=20&view=rss"
-    
-    # Get entries from the last 24 hours
-    entries = get_entries_from_last_24h(feed_url)
-    
-    if not entries:
-        print("No entries found from the last 24 hours")
+    feed_urls = load_feeds_from_yaml() # Load feeds (path determined internally)
+
+    all_entries = []
+    # Get entries from the last 24 hours for each feed
+    for feed_url in feed_urls:
+        print(f"Fetching entries from: {feed_url}")
+        entries = get_entries_from_last_24h(feed_url)
+        if entries:
+            all_entries.extend(entries)
+        else:
+            print(f"No recent entries found for: {feed_url}")
+
+    if not all_entries:
+        print("No entries found from the last 24 hours across all feeds")
         sys.exit(0)
-    
+
+    # Sort entries by published date (newest first) - optional but good practice
+    all_entries.sort(key=lambda x: date_parser.parse(x.published) if hasattr(x, 'published') else datetime.datetime.min.replace(tzinfo=datetime.timezone.utc), reverse=True)
+
     # Format entries for the prompt
-    entries_text = format_entries_for_prompt(entries)
+    entries_text = format_entries_for_prompt(all_entries)
     
     # Get summary from Claude
     summary = summarize_with_claude(entries_text)
