@@ -10,4 +10,5 @@ dependencies = [
     "python-dateutil",
     "PyYAML",
     "feedgen",
+    "Jinja2", # Add Jinja2 dependency
 ]

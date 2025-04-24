@@ -19,7 +19,8 @@ import http.server
 import socketserver
 import threading
 import functools # For http server directory binding
-import logging # Add logging import
+import logging
+from jinja2 import Environment, FileSystemLoader, select_autoescape # Add Jinja2 imports
 
 def get_recent_entries(feed_url):
     """
@@ -229,41 +230,10 @@ def start_http_server(directory, port):
 
 # --- Core Logic ---
 
-def format_entries_for_prompt(entries):
-    """
-    Format RSS entries into a text format for the prompt.
-    """
-    formatted_text = ""
-    
-    for i, entry in enumerate(entries, 1):
-        formatted_text += f"POST {i}:\n"
-        formatted_text += f"Title: {entry.title}\n"
-        formatted_text += f"Link: {entry.link}\n"
-        
-        if hasattr(entry, 'published'):
-            formatted_text += f"Published: {entry.published}\n"
-            
-        if hasattr(entry, 'summary'):
-            formatted_text += f"Summary: {entry.summary}\n"
-        elif hasattr(entry, 'description'):
-            formatted_text += f"Description: {entry.description}\n"
-            
-        formatted_text += "\n---\n\n"
-    
-    return formatted_text
+# Removed format_entries_for_prompt function
+# Removed get_prompt function
 
-def get_prompt():
-    """
-    Read the prompt from the prompt.txt file.
-    """
-    try:
-        with open("prompt.txt", "r") as f:
-            return f.read()
-    except Exception as e:
-        logging.error(f"Error reading prompt file: {e}")
-        sys.exit(1)
-
-def summarize_with_claude(entries_text):
+def summarize_with_claude(entries): # Changed argument from entries_text to entries
     """
     Use Claude API to summarize the entries.
     """
@@ -273,16 +243,41 @@ def summarize_with_claude(entries_text):
         sys.exit(1)
 
     client = Anthropic(api_key=api_key)
-    prompt_text = get_prompt()
 
+    # --- Load and render Jinja2 template ---
     try:
+        # Set up Jinja2 environment to load templates from the current directory
+        env = Environment(
+            loader=FileSystemLoader('.'), # Look for templates in the current dir
+            autoescape=select_autoescape(['html', 'xml']) # Basic autoescaping
+        )
+        template = env.get_template("prompt.j2")
+
+        # Get lookback hours for the template context
+        try:
+            lookback_hours = int(os.environ.get("RSS_LOOKBACK_HOURS", 24))
+            if lookback_hours <= 0: lookback_hours = 24 # Ensure positive
+        except ValueError:
+            lookback_hours = 24
+
+        # Render the template with the entries and lookback hours
+        rendered_prompt = template.render(entries=entries, num_hours=lookback_hours)
+        logging.debug("Successfully rendered Jinja2 template.")
+
+    except Exception as e:
+        logging.error(f"Error rendering Jinja2 template 'prompt.j2': {e}", exc_info=True)
+        return None # Cannot proceed without a prompt
+
+    # --- Call Claude API ---
+    try:
+        # Note: The system prompt is now part of the Jinja template content
         message = client.messages.create(
             model="claude-3-5-haiku-20241022",
-            max_tokens=4096, # Increase token limit
+            max_tokens=4096,
             messages=[
                 {
                     "role": "user",
-                    "content": f"{prompt_text}\n\nHere are the Reddit posts from the last 24 hours:\n\n{entries_text}"
+                    "content": rendered_prompt # Use the rendered template content
                 }
             ]
         )
@@ -324,11 +319,11 @@ def run_summary_cycle(feed_file_path):
     # Sort entries by published date (newest first)
     all_entries.sort(key=lambda x: date_parser.parse(x.published) if hasattr(x, 'published') else datetime.datetime.min.replace(tzinfo=datetime.timezone.utc), reverse=True)
 
-    # Format entries for the prompt
-    entries_text = format_entries_for_prompt(all_entries)
+    # Removed formatting step, pass raw entries to summarizer
+    # entries_text = format_entries_for_prompt(all_entries)
     
-    # Get summary from Claude
-    summary = summarize_with_claude(entries_text)
+    # Get summary from Claude using the raw entries list
+    summary = summarize_with_claude(all_entries)
 
     if summary:
         # Generate the RSS feed file
