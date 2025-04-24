@@ -7,10 +7,50 @@
     <docs>http://www.rssboard.org/rss-specification</docs>
     <generator>python-feedgen</generator>
     <language>en</language>
-    <lastBuildDate>Thu, 24 Apr 2025 16:46:49 +0000</lastBuildDate>
+    <lastBuildDate>Thu, 24 Apr 2025 17:04:01 +0000</lastBuildDate>
+    <item>
+      <title>Summary for 2025-04-24 17:04:01 UTC</title>
+      <link>file:///Users/bouleau/dev/rss-summary/rss/feed.xml</link>
+      <description>I'll prepare the global news summary based on the provided news feed.
+
+&lt;h1&gt;Global News Summary&lt;/h1&gt;
+
+&lt;h2&gt;Public Health Alert: Measles Outbreak Threatens US Vaccination Progress&lt;/h2&gt;
+&lt;p&gt;Sources: &lt;a href="https://www.washingtonpost.com"&gt;The Washington Post&lt;/a&gt;, &lt;a href="https://www.reuters.com"&gt;Reuters&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Health experts are warning of a potential measles epidemic in the United States as vaccination rates decline. Studies suggest that a small drop in immunization coverage could lead to millions of cases over the next 25 years. The Texas measles outbreak has already surpassed 600 cases, primarily affecting children and teenagers, signaling a critical public health challenge.&lt;/p&gt;
+
+&lt;h2&gt;Escalating Tensions: India-Pakistan Conflict Intensifies After Kashmir Attack&lt;/h2&gt;
+&lt;p&gt;Sources: &lt;a href="https://www.nbcnews.com"&gt;NBC News&lt;/a&gt;, &lt;a href="https://www.bbc.com"&gt;BBC&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Diplomatic relations between India and Pakistan have dramatically deteriorated following a deadly tourist attack in Kashmir that killed 26 people. India has suspended visa services for Pakistani nationals, closed border crossings, and terminated a critical water-sharing treaty. Pakistan responded by closing its airspace to India, suspending trade, and reducing diplomatic staff. Both nuclear-armed nations are exchanging increasingly hostile diplomatic signals, raising global concerns about potential military escalation.&lt;/p&gt;
+
+&lt;h2&gt;Trump's Diplomatic and Domestic Maneuvers&lt;/h2&gt;
+&lt;p&gt;Sources: &lt;a href="https://www.npr.org"&gt;NPR&lt;/a&gt;, &lt;a href="https://www.cbc.ca"&gt;CBC News&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;President Trump has signed executive actions targeting education, including efforts to restrict diversity, equity, and inclusion (DEI) programs. Simultaneously, he has inserted himself into Canadian politics, suggesting Canada could be treated as a "51st state" and hinting at potential increases in trade tariffs. These actions have sparked reactions from Canadian political leaders, with Liberal leader Mark Carney calling for unity against potential American economic pressures.&lt;/p&gt;
+
+&lt;h2&gt;Global Economic Landscape: Market Trends and Airline Industry&lt;/h2&gt;
+&lt;p&gt;Sources: &lt;a href="https://www.cnbc.com"&gt;CNBC&lt;/a&gt;, &lt;a href="https://www.barrons.com"&gt;Barron's&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;The stock market experienced a tech-driven surge, with the S&amp;P 500 and Nasdaq showing significant gains. Major airlines like American, Southwest, and Alaska Air have withdrawn their 2025 financial guidance due to uncertain economic conditions and ongoing trade tensions between the US and China. The market remains volatile, reflecting global economic uncertainties.&lt;/p&gt;
+
+&lt;h2&gt;International Diplomatic Developments&lt;/h2&gt;
+&lt;p&gt;Sources: &lt;a href="https://www.kyivindependent.com"&gt;Kyiv Independent&lt;/a&gt;, &lt;a href="https://www.pravda.com.ua"&gt;Pravda&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;Ukraine's President Zelensky has shared a 2018 US Crimea Declaration amid shifting US policy, reaffirming Ukraine's territorial integrity. The Kremlin has warned that potential Western peacekeeping deployment in Ukraine could lead to World War III, escalating tensions in the ongoing conflict.&lt;/p&gt;
+
+&lt;h2&gt;Technology and Innovation: AI and Space Exploration&lt;/h2&gt;
+&lt;p&gt;Sources: &lt;a href="https://www.space.com"&gt;Space&lt;/a&gt;, &lt;a href="https://www.wired.com"&gt;WIRED&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;China successfully launched the Shenzhou 20 mission to its Tiangong space station, continuing its robust space exploration program. Meanwhile, Google's AI developments have highlighted fundamental challenges in machine learning, with AI systems generating nonsensical and potentially misleading information.&lt;/p&gt;</description>
+      <guid isPermaLink="false">urn:uuid:2025-04-24T17:04:01.327510+00:00</guid>
+      <pubDate>Thu, 24 Apr 2025 17:04:01 +0000</pubDate>
+    </item>
+    <item>
+      <title>Summary for 2025-04-24 17:02:12 UTC</title>
+      <link>file://Users/bouleau/dev/rss-summary/rss/feed.xml</link>
+      <description>I apologize, but it seems like you haven't actually provided any news articles or text for me to summarize. Could you please share the news items you'd like me to compile into a global news summary? Once you provide the news content, I'll be happy to create a concise, well-formatted summary following the guidelines you've outlined.</description>
+      <guid isPermaLink="false">urn:uuid:2025-04-24T17:02:12.952578+00:00</guid>
+      <pubDate>Thu, 24 Apr 2025 17:02:12 +0000</pubDate>
+    </item>
     <item>
       <title>Summary for 2025-04-24 16:46:49 UTC</title>
-      <link>file:///Users/bouleau/dev/rss-summary/rss/feed.xml</link>
+      <link>file://Users/bouleau/dev/rss-summary/rss/feed.xml</link>
       <description>&lt;h1&gt;Global News Summary&lt;/h1&gt;
 
 &lt;h2&gt;India-Pakistan Tensions Escalate Over Kashmir Attack&lt;/h2&gt;
