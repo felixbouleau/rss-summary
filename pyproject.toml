@@ -5,7 +5,8 @@ description = "Summarize RSS feeds using Claude AI"
 readme = "README.md"
 requires-python = ">=3.8"
 dependencies = [
-    "anthropic",
+    "llm",
+    "llm-anthropic",
     "feedparser",
     "python-dateutil",
     "PyYAML",

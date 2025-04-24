@@ -13,8 +13,8 @@ import datetime
 import feedparser
 import yaml
 from dateutil import parser as date_parser
-from anthropic import Anthropic
-from feedgen.feed import FeedGenerator # Add feedgen import
+import llm # Use the llm library
+from feedgen.feed import FeedGenerator
 import http.server
 import socketserver
 import threading
@@ -233,16 +233,38 @@ def start_http_server(directory, port):
 # Removed format_entries_for_prompt function
 # Removed get_prompt function
 
-def summarize_with_claude(entries): # Changed argument from entries_text to entries
+def summarize_with_llm(entries):
     """
-    Use Claude API to summarize the entries.
+    Use the llm library to summarize the entries with the configured model.
     """
-    api_key = os.environ.get("ANTHROPIC_API_KEY")
-    if not api_key:
-        logging.error("ANTHROPIC_API_KEY environment variable not set")
+    # --- Get Required Configuration ---
+    model_id = os.environ.get("LLM_MODEL")
+    if not model_id:
+        logging.error("LLM_MODEL environment variable not set.")
         sys.exit(1)
 
-    client = Anthropic(api_key=api_key)
+    try:
+        max_tokens = int(os.environ.get("LLM_MAX_TOKENS"))
+        if max_tokens <= 0:
+            raise ValueError("LLM_MAX_TOKENS must be a positive integer.")
+    except (ValueError, TypeError):
+        logging.error("LLM_MAX_TOKENS environment variable must be set to a positive integer.")
+        sys.exit(1)
+
+    # --- Get Model Instance ---
+    try:
+        model = llm.get_model(model_id)
+        # Note: llm library handles API key lookup via env vars (ANTHROPIC_API_KEY)
+        # or its own key management ('llm keys set anthropic').
+        # No need for explicit key handling here unless overriding.
+        logging.info(f"Using LLM model: {model.model_id}")
+    except llm.UnknownModelError:
+        logging.error(f"Unknown LLM model specified: {model_id}. Is the required plugin (e.g., llm-anthropic) installed?")
+        sys.exit(1)
+    except Exception as e:
+        logging.error(f"Error getting LLM model '{model_id}': {e}")
+        sys.exit(1)
+
 
     # --- Load and render Jinja2 template ---
     try:
@@ -268,25 +290,28 @@ def summarize_with_claude(entries): # Changed argument from entries_text to entr
         logging.error(f"Error rendering Jinja2 template 'prompt.j2': {e}", exc_info=True)
         return None # Cannot proceed without a prompt
 
-    # --- Call Claude API ---
+    # --- Call LLM ---
     try:
-        # Note: The system prompt is now part of the Jinja template content
-        message = client.messages.create(
-            model="claude-3-5-haiku-20241022",
-            max_tokens=4096,
-            messages=[
-                {
-                    "role": "user",
-                    "content": rendered_prompt # Use the rendered template content
-                }
-            ]
+        # The system prompt is embedded within the user prompt via the Jinja template
+        response = model.prompt(
+            rendered_prompt,
+            # Pass max_tokens as an option if the model supports it
+            # Note: Check model options with 'llm models --options'
+            # For Claude via llm-anthropic, max_tokens is a standard parameter.
+            max_tokens=max_tokens
         )
-        logging.info("Successfully received summary from Claude API.")
-        return message.content[0].text
+        # response.text() handles potential streaming and returns the full string
+        summary_text = response.text()
+        logging.info(f"Successfully received summary from LLM model {model.model_id}.")
+        # Optional: Log token usage if needed
+        # try:
+        #     usage = response.usage()
+        #     logging.info(f"LLM Usage - Input: {usage.input}, Output: {usage.output}")
+        # except Exception: # Not all models might support usage tracking easily
+        #     logging.debug("Could not retrieve token usage information.")
+        return summary_text
     except Exception as e:
-        logging.error(f"Error calling Claude API: {e}")
-        # Don't exit the whole script on API error, just return None
-        # sys.exit(1)
+        logging.error(f"Error calling LLM model {model.model_id}: {e}")
         return None
 
 def run_summary_cycle(feed_file_path):
@@ -322,14 +347,14 @@ def run_summary_cycle(feed_file_path):
     # Removed formatting step, pass raw entries to summarizer
     # entries_text = format_entries_for_prompt(all_entries)
     
-    # Get summary from Claude using the raw entries list
-    summary = summarize_with_claude(all_entries)
+    # Get summary from the configured LLM using the raw entries list
+    summary = summarize_with_llm(all_entries)
 
     if summary:
         # Generate the RSS feed file
         generate_rss_feed(summary, feed_file_path)
     else:
-        logging.error("Failed to generate summary from Claude. Skipping feed update.")
+        logging.error("Failed to generate summary from LLM. Skipping feed update.")
 
     logging.info(f"--- Summary cycle finished at {datetime.datetime.now()} ---")
 
