@@ -20,21 +20,33 @@ import socketserver
 import threading
 import functools # For http server directory binding
 
-def get_entries_from_last_24h(feed_url):
+def get_recent_entries(feed_url):
     """
-    Fetch entries from the RSS feed that were published in the last 24 hours.
+    Fetch entries from the RSS feed published within a configurable lookback period.
+    The lookback period (in hours) is set by the RSS_LOOKBACK_HOURS env var, defaulting to 24.
     """
+    # Get lookback hours from env var, default to 24
+    try:
+        lookback_hours = int(os.environ.get("RSS_LOOKBACK_HOURS", 24))
+        if lookback_hours <= 0:
+            print("Warning: RSS_LOOKBACK_HOURS must be positive. Using default 24 hours.")
+            lookback_hours = 24
+    except ValueError:
+        print("Warning: Invalid RSS_LOOKBACK_HOURS value. Using default 24 hours.")
+        lookback_hours = 24
+
+    print(f"Fetching entries from the last {lookback_hours} hours for: {feed_url}")
+
     try:
         feed = feedparser.parse(feed_url)
         if not feed.entries:
             print("Error: No entries found in the feed")
             sys.exit(1)
-            
-        # Get current time
+        # Get current time and calculate cutoff based on lookback_hours
         now = datetime.datetime.now(datetime.timezone.utc)
-        cutoff = now - datetime.timedelta(hours=24)
-        
-        # Filter entries from the last 24 hours
+        cutoff = now - datetime.timedelta(hours=lookback_hours)
+
+        # Filter entries published after the cutoff time
         recent_entries = []
         for entry in feed.entries:
             if hasattr(entry, 'published'):
@@ -286,12 +298,12 @@ def run_summary_cycle(feed_file_path):
         return
 
     all_entries = []
-    # Get entries from the last 24 hours for each feed
+    # Get recent entries for each feed based on the lookback window
     for feed_url in feed_urls:
-        # Fetch entries first
-        entries = get_entries_from_last_24h(feed_url)
-        # Log the result after fetching
-        print(f"Fetched {len(entries)} items from feed: {feed_url}")
+        # Fetch entries first using the updated function
+        entries = get_recent_entries(feed_url)
+        # Log the result after fetching (message now includes lookback period)
+        # print(f"Fetched {len(entries)} items from feed: {feed_url}") # Log is now inside get_recent_entries
         if entries:
             all_entries.extend(entries)
         # No need for an else here, the count in the log message indicates 0 entries
