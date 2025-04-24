@@ -51,3 +51,4 @@ htmlcov/
 # Project specific
 .ruff_cache/
 __pypackages__/
+.aider*
