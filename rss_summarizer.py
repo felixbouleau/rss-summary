@@ -124,14 +124,19 @@ def summarize_with_claude(entries_text):
     client = Anthropic(api_key=api_key)
     prompt_text = get_prompt()
     
+    # Get system prompt from env var, with a default
+    default_system_prompt = "Summarize the provided content accurately and concisely."
+    system_prompt = os.environ.get("CLAUDE_SYSTEM_PROMPT", default_system_prompt)
+    print(f"Using system prompt: '{system_prompt}'") # Add info message
+
     try:
         message = client.messages.create(
             model="claude-3-5-haiku-20241022",
             max_tokens=1024,
-            system="Summarize the provided content accurately and concisely.",
+            system=system_prompt, # Use the configured system prompt
             messages=[
                 {
-                    "role": "user", 
+                    "role": "user",
                     "content": f"{prompt_text}\n\nHere are the Reddit posts from the last 24 hours:\n\n{entries_text}"
                 }
             ]
