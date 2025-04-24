@@ -3,7 +3,7 @@ name = "rss-summary"
 version = "0.1.0"
 description = "Summarize RSS feeds using Claude AI"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 dependencies = [
     "llm",
     "llm-anthropic",
