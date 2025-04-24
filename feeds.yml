@@ -1,0 +1,4 @@
+# List of RSS feeds to summarize
+feeds:
+  - url: "http://miniflux-ct:8084/?subreddit=worldnews&averagePostsPerDay=20&view=rss"
+  # - url: "https://example.com/another_feed.rss" # Add more feeds here
