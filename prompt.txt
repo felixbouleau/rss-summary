@@ -15,6 +15,7 @@ Here are some very important guidelines that you must follow:
 - Format the output using HTML tags (e.g., <h2>, <h3>, <p>, <ul>, <li>) for structure and readability.
 - The summary should be well-organized, factual, and easy to read at a glance.
 - Don't include an introduction like "Based on the news feed, here's a comprehensive global news summary". Follow the format in the example below and go straight into the content.
+- The start of your response should always be "<h1>Global News Summary</h1>"
 - Don't mention Reddit.
 
 Here's an example of the visual format you should follow. You should not copy the themes and summaries from this example verbatim - generate those yourself based on the news given to you at the end of this prompt.
