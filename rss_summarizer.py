@@ -35,7 +35,7 @@ def get_recent_entries(feed_url):
         print("Warning: Invalid RSS_LOOKBACK_HOURS value. Using default 24 hours.")
         lookback_hours = 24
 
-    print(f"Fetching entries from the last {lookback_hours} hours for: {feed_url}")
+    # Removed the print statement from here
 
     try:
         feed = feedparser.parse(feed_url)
@@ -57,6 +57,8 @@ def get_recent_entries(feed_url):
                 except Exception as e:
                     print(f"Warning: Could not parse date for entry: {e}")
         
+        # Log the count of filtered entries before returning
+        print(f"Fetched {len(recent_entries)} items from the last {lookback_hours} hours for feed: {feed_url}")
         return recent_entries
     except Exception as e:
         print(f"Error fetching or parsing RSS feed for {feed_url}: {e}")
