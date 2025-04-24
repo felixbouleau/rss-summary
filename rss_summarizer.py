@@ -11,6 +11,7 @@ import sys
 import time
 import datetime
 import feedparser
+import yaml  # Add yaml import
 from dateutil import parser as date_parser
 from anthropic import Anthropic
 
@@ -43,6 +44,39 @@ def get_entries_from_last_24h(feed_url):
     except Exception as e:
         print(f"Error fetching or parsing RSS feed: {e}")
         sys.exit(1)
+
+def load_feeds_from_yaml():
+    """
+    Load feed URLs from a YAML file specified by the RSS_FEEDS_CONFIG env var,
+    defaulting to 'feeds.yml'.
+    """
+    # Get config file path from env var, default to 'feeds.yml'
+    filepath = os.environ.get("RSS_FEEDS_CONFIG", "feeds.yml")
+    print(f"Loading feeds from: {filepath}") # Add info message
+
+    try:
+        with open(filepath, 'r') as f:
+            config = yaml.safe_load(f)
+            if config and 'feeds' in config and isinstance(config['feeds'], list):
+                # Extract URLs from the list of dictionaries
+                urls = [feed.get('url') for feed in config['feeds'] if isinstance(feed, dict) and 'url' in feed]
+                if not urls:
+                    print(f"Error: No valid feed URLs found in {filepath}")
+                    sys.exit(1)
+                return urls
+            else:
+                print(f"Error: Invalid format in {filepath}. Expected a 'feeds' list with 'url' keys.")
+                sys.exit(1)
+    except FileNotFoundError:
+        print(f"Error: Configuration file {filepath} not found.")
+        sys.exit(1)
+    except yaml.YAMLError as e:
+        print(f"Error parsing YAML file {filepath}: {e}")
+        sys.exit(1)
+    except Exception as e:
+        print(f"An unexpected error occurred while loading feeds: {e}")
+        sys.exit(1)
+
 
 def format_entries_for_prompt(entries):
     """
