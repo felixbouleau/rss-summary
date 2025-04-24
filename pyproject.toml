@@ -8,4 +8,5 @@ dependencies = [
     "anthropic",
     "feedparser",
     "python-dateutil",
+    "PyYAML",
 ]
