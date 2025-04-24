@@ -239,11 +239,14 @@ def summarize_with_llm(entries):
     """
     # --- Get Model ID (with default) ---
     default_model_id = "claude-3.5-sonnet"
-    model_id = os.environ.get("LLM_MODEL", default_model_id)
-    if model_id == default_model_id:
-        logging.info(f"LLM_MODEL not set. Using default value: {default_model_id}")
+    env_model_id = os.environ.get("LLM_MODEL") # Check if it's set first
+
+    if env_model_id is None:
+        model_id = default_model_id
+        logging.info(f"LLM_MODEL not set. Using default value: {model_id}")
     else:
-        logging.info(f"Using LLM_MODEL value: {model_id}")
+        model_id = env_model_id
+        logging.info(f"Using LLM_MODEL value from environment: {model_id}")
 
     # --- Get Max Tokens (with default) ---
     max_tokens_str = os.environ.get("LLM_MAX_TOKENS")
