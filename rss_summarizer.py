@@ -243,13 +243,24 @@ def summarize_with_llm(entries):
         logging.error("LLM_MODEL environment variable not set.")
         sys.exit(1)
 
-    try:
-        max_tokens = int(os.environ.get("LLM_MAX_TOKENS"))
-        if max_tokens <= 0:
-            raise ValueError("LLM_MAX_TOKENS must be a positive integer.")
-    except (ValueError, TypeError):
-        logging.error("LLM_MAX_TOKENS environment variable must be set to a positive integer.")
-        sys.exit(1)
+    # --- Get Max Tokens (with default) ---
+    max_tokens_str = os.environ.get("LLM_MAX_TOKENS")
+    default_max_tokens = 4096
+    if max_tokens_str is None:
+        max_tokens = default_max_tokens
+        logging.info(f"LLM_MAX_TOKENS not set. Using default value: {max_tokens}")
+    else:
+        try:
+            max_tokens = int(max_tokens_str)
+            if max_tokens <= 0:
+                logging.warning(f"Invalid LLM_MAX_TOKENS value '{max_tokens_str}'. Must be a positive integer. Using default: {default_max_tokens}")
+                max_tokens = default_max_tokens
+            else:
+                logging.info(f"Using LLM_MAX_TOKENS value: {max_tokens}")
+        except ValueError:
+            logging.warning(f"Invalid LLM_MAX_TOKENS value '{max_tokens_str}'. Must be an integer. Using default: {default_max_tokens}")
+            max_tokens = default_max_tokens
+
 
     # --- Get Model Instance ---
     try:
