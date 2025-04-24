@@ -255,17 +255,11 @@ def summarize_with_claude(entries_text):
     
     client = Anthropic(api_key=api_key)
     prompt_text = get_prompt()
-    
-    # Get system prompt from env var, with a default requesting HTML formatting
-    default_system_prompt = "Summarize the provided content accurately and concisely. Format the output using HTML tags (e.g., <h2>, <h3>, <p>, <ul>, <li>) for structure and readability."
-    system_prompt = os.environ.get("CLAUDE_SYSTEM_PROMPT", default_system_prompt)
-    print(f"Using system prompt: '{system_prompt}'")
 
     try:
         message = client.messages.create(
             model="claude-3-5-haiku-20241022",
             max_tokens=1024,
-            system=system_prompt, # Use the configured system prompt
             messages=[
                 {
                     "role": "user",
