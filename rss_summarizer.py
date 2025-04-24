@@ -278,7 +278,7 @@ def summarize_with_claude(entries_text):
     try:
         message = client.messages.create(
             model="claude-3-5-haiku-20241022",
-            max_tokens=1024,
+            max_tokens=4096, # Increase token limit
             messages=[
                 {
                     "role": "user",
