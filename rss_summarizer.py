@@ -104,9 +104,10 @@ def generate_rss_feed(summary_text, feed_file_path):
     entry_title = f"Summary for {now.strftime('%Y-%m-%d %H:%M:%S UTC')}"
     fe.title(entry_title)
     # Create a unique ID based on timestamp
-    fe.id(f"urn:uuid:{now.isoformat()}") 
+    fe.id(f"urn:uuid:{now.isoformat()}")
     fe.link(href=feed_link) # Link entry back to the feed itself
-    fe.description(summary_text)
+    # Use content() with type='html' instead of description()
+    fe.content(summary_text, type='html') 
     fe.pubDate(now)
 
     try:
@@ -183,10 +184,10 @@ def summarize_with_claude(entries_text):
     client = Anthropic(api_key=api_key)
     prompt_text = get_prompt()
     
-    # Get system prompt from env var, with a default
-    default_system_prompt = "Summarize the provided content accurately and concisely."
+    # Get system prompt from env var, with a default requesting HTML formatting
+    default_system_prompt = "Summarize the provided content accurately and concisely. Format the output using HTML tags (e.g., <h2>, <h3>, <p>, <ul>, <li>) for structure and readability."
     system_prompt = os.environ.get("CLAUDE_SYSTEM_PROMPT", default_system_prompt)
-    print(f"Using system prompt: '{system_prompt}'") # Add info message
+    print(f"Using system prompt: '{system_prompt}'")
 
     try:
         message = client.messages.create(
