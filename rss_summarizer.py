@@ -19,6 +19,7 @@ import http.server
 import socketserver
 import threading
 import functools # For http server directory binding
+import logging # Add logging import
 
 def get_recent_entries(feed_url):
     """
@@ -29,19 +30,21 @@ def get_recent_entries(feed_url):
     try:
         lookback_hours = int(os.environ.get("RSS_LOOKBACK_HOURS", 24))
         if lookback_hours <= 0:
-            print("Warning: RSS_LOOKBACK_HOURS must be positive. Using default 24 hours.")
+            logging.warning("RSS_LOOKBACK_HOURS must be positive. Using default 24 hours.")
             lookback_hours = 24
     except ValueError:
-        print("Warning: Invalid RSS_LOOKBACK_HOURS value. Using default 24 hours.")
+        logging.warning("Invalid RSS_LOOKBACK_HOURS value. Using default 24 hours.")
         lookback_hours = 24
 
-    # Removed the print statement from here
+    # Log the attempt
+    logging.debug(f"Attempting to fetch entries from the last {lookback_hours} hours for: {feed_url}")
 
     try:
         feed = feedparser.parse(feed_url)
-        if not feed.entries:
-            print("Error: No entries found in the feed")
-            sys.exit(1)
+        # Note: feedparser usually returns an empty list, not None or error on no entries
+        # if not feed.entries:
+        #     logging.warning(f"No entries found in feed: {feed_url}")
+        #     # Don't exit here, just return empty list later
         # Get current time and calculate cutoff based on lookback_hours
         now = datetime.datetime.now(datetime.timezone.utc)
         cutoff = now - datetime.timedelta(hours=lookback_hours)
@@ -55,13 +58,13 @@ def get_recent_entries(feed_url):
                     if pub_date > cutoff:
                         recent_entries.append(entry)
                 except Exception as e:
-                    print(f"Warning: Could not parse date for entry: {e}")
-        
+                    logging.warning(f"Could not parse date for entry: {e}")
+
         # Log the count of filtered entries before returning
-        print(f"Fetched {len(recent_entries)} items from the last {lookback_hours} hours for feed: {feed_url}")
+        logging.info(f"Fetched {len(recent_entries)} items from the last {lookback_hours} hours for feed: {feed_url}")
         return recent_entries
     except Exception as e:
-        print(f"Error fetching or parsing RSS feed for {feed_url}: {e}")
+        logging.error(f"Error fetching or parsing RSS feed for {feed_url}: {e}")
         # Return empty list instead of exiting, so other feeds can be tried
         return [] 
 
@@ -72,7 +75,7 @@ def load_feeds_from_yaml():
     """
     # Get config file path from env var, default to 'feeds.yml'
     filepath = os.environ.get("RSS_FEEDS_CONFIG", "feeds.yml")
-    print(f"Loading feeds from: {filepath}") # Add info message
+    logging.info(f"Loading feeds from: {filepath}")
 
     try:
         with open(filepath, 'r') as f:
@@ -81,20 +84,20 @@ def load_feeds_from_yaml():
                 # Extract URLs from the list of dictionaries
                 urls = [feed.get('url') for feed in config['feeds'] if isinstance(feed, dict) and 'url' in feed]
                 if not urls:
-                    print(f"Error: No valid feed URLs found in {filepath}")
+                    logging.error(f"No valid feed URLs found in {filepath}")
                     sys.exit(1)
                 return urls
             else:
-                print(f"Error: Invalid format in {filepath}. Expected a 'feeds' list with 'url' keys.")
+                logging.error(f"Invalid format in {filepath}. Expected a 'feeds' list with 'url' keys.")
                 sys.exit(1)
     except FileNotFoundError:
-        print(f"Error: Configuration file {filepath} not found.")
+        logging.error(f"Configuration file {filepath} not found.")
         sys.exit(1)
     except yaml.YAMLError as e:
-        print(f"Error parsing YAML file {filepath}: {e}")
+        logging.error(f"Error parsing YAML file {filepath}: {e}")
         sys.exit(1)
     except Exception as e:
-        print(f"An unexpected error occurred while loading feeds: {e}")
+        logging.error(f"An unexpected error occurred while loading feeds: {e}")
         sys.exit(1)
 
 # --- RSS Feed Generation ---
@@ -126,13 +129,13 @@ def generate_rss_feed(summary_text, feed_file_path):
     parsed_feed = None
     if os.path.exists(feed_file_path):
         try:
-            print(f"Loading existing feed from: {feed_file_path}")
+            logging.info(f"Loading existing feed from: {feed_file_path}")
             parsed_feed = feedparser.parse(feed_file_path)
             if parsed_feed.bozo:
                  # Error during parsing
                  raise ValueError(f"Feed parsing error: {parsed_feed.bozo_exception}")
         except Exception as e:
-            print(f"Warning: Could not parse existing feed file '{feed_file_path}'. A new feed will be created. Error: {e}")
+            logging.warning(f"Could not parse existing feed file '{feed_file_path}'. A new feed will be created. Error: {e}")
             parsed_feed = None # Reset on error
 
     # --- Set Feed Metadata (from parsed feed or defaults) ---
@@ -153,7 +156,7 @@ def generate_rss_feed(summary_text, feed_file_path):
         fg.language(feed_lang)
 
         # --- Add OLD entries ---
-        print(f"Adding {len(parsed_feed.entries)} existing entries.")
+        logging.info(f"Adding {len(parsed_feed.entries)} existing entries.")
         for entry in parsed_feed.entries:
             fe_old = fg.add_entry(order='append') # Append old entries
             fe_old.title(entry.get('title', ''))
@@ -201,9 +204,9 @@ def generate_rss_feed(summary_text, feed_file_path):
         os.makedirs(os.path.dirname(feed_file_path), exist_ok=True)
         # Generate the RSS feed file
         fg.rss_file(feed_file_path, pretty=True)
-        print(f"RSS feed updated successfully: {feed_file_path}")
+        logging.info(f"RSS feed updated successfully: {feed_file_path}")
     except Exception as e:
-        print(f"Error writing RSS feed file: {e}")
+        logging.error(f"Error writing RSS feed file: {e}")
 
 
 # --- HTTP Server ---
@@ -211,11 +214,13 @@ def generate_rss_feed(summary_text, feed_file_path):
 def start_http_server(directory, port):
     """Starts a simple HTTP server in a background thread."""
     Handler = functools.partial(http.server.SimpleHTTPRequestHandler, directory=directory)
+    # Suppress standard request logging from SimpleHTTPRequestHandler
+    Handler.log_message = lambda *args: None 
     httpd = socketserver.TCPServer(("", port), Handler)
-    
-    print(f"Serving RSS feed from directory '{directory}' on port {port}")
-    print(f"Feed URL: http://localhost:{port}/feed.xml") # Assuming feed is named feed.xml
-    
+
+    logging.info(f"Serving RSS feed from directory '{directory}' on port {port}")
+    logging.info(f"Feed URL: http://localhost:{port}/feed.xml") # Assuming feed is named feed.xml
+
     # Run the server in a separate thread
     server_thread = threading.Thread(target=httpd.serve_forever)
     server_thread.daemon = True # Allows program to exit even if thread is running
@@ -255,7 +260,7 @@ def get_prompt():
         with open("prompt.txt", "r") as f:
             return f.read()
     except Exception as e:
-        print(f"Error reading prompt file: {e}")
+        logging.error(f"Error reading prompt file: {e}")
         sys.exit(1)
 
 def summarize_with_claude(entries_text):
@@ -264,9 +269,9 @@ def summarize_with_claude(entries_text):
     """
     api_key = os.environ.get("ANTHROPIC_API_KEY")
     if not api_key:
-        print("Error: ANTHROPIC_API_KEY environment variable not set")
+        logging.error("ANTHROPIC_API_KEY environment variable not set")
         sys.exit(1)
-    
+
     client = Anthropic(api_key=api_key)
     prompt_text = get_prompt()
 
@@ -281,22 +286,23 @@ def summarize_with_claude(entries_text):
                 }
             ]
         )
+        logging.info("Successfully received summary from Claude API.")
         return message.content[0].text
     except Exception as e:
-        print(f"Error calling Claude API: {e}")
+        logging.error(f"Error calling Claude API: {e}")
         # Don't exit the whole script on API error, just return None
-        # sys.exit(1) 
+        # sys.exit(1)
         return None
 
 def run_summary_cycle(feed_file_path):
     """
     Performs one cycle of fetching, summarizing, and saving the feed.
     """
-    print(f"\n--- Starting summary cycle at {datetime.datetime.now()} ---")
-    feed_urls = load_feeds_from_yaml() 
+    logging.info(f"--- Starting summary cycle at {datetime.datetime.now()} ---")
+    feed_urls = load_feeds_from_yaml()
 
     if not feed_urls:
-        print("No feed URLs loaded. Skipping cycle.")
+        logging.warning("No feed URLs loaded. Skipping cycle.")
         return
 
     all_entries = []
@@ -311,9 +317,9 @@ def run_summary_cycle(feed_file_path):
         # No need for an else here, the count in the log message indicates 0 entries
 
     if not all_entries:
-        print("No new entries found across all feeds in the last 24 hours.")
+        logging.info("No new entries found across all feeds in the lookback period.")
         # Don't exit, just skip generating a summary for this cycle
-        return 
+        return
 
     # Sort entries by published date (newest first)
     all_entries.sort(key=lambda x: date_parser.parse(x.published) if hasattr(x, 'published') else datetime.datetime.min.replace(tzinfo=datetime.timezone.utc), reverse=True)
@@ -328,9 +334,9 @@ def run_summary_cycle(feed_file_path):
         # Generate the RSS feed file
         generate_rss_feed(summary, feed_file_path)
     else:
-        print("Failed to generate summary from Claude.")
-    
-    print(f"--- Summary cycle finished at {datetime.datetime.now()} ---")
+        logging.error("Failed to generate summary from Claude. Skipping feed update.")
+
+    logging.info(f"--- Summary cycle finished at {datetime.datetime.now()} ---")
 
 
 def main():
@@ -344,18 +350,23 @@ def main():
     feed_filename = "feed.xml"
     feed_file_path = os.path.join(output_dir, feed_filename)
 
-    print("--- RSS Summarizer Service ---")
-    print(f"Output Directory: {os.path.abspath(output_dir)}")
-    print(f"Server Port: {server_port}")
-    print(f"Refresh Interval: {refresh_interval} seconds")
-    print(f"Feed File: {feed_file_path}")
-    print("-----------------------------")
+    # --- Configure Logging ---
+    logging.basicConfig(level=logging.INFO, 
+                        format='%(asctime)s - %(levelname)s - %(message)s',
+                        datefmt='%Y-%m-%d %H:%M:%S')
+
+    logging.info("--- RSS Summarizer Service Starting ---")
+    logging.info(f"Output Directory: {os.path.abspath(output_dir)}")
+    logging.info(f"Server Port: {server_port}")
+    logging.info(f"Refresh Interval: {refresh_interval} seconds")
+    logging.info(f"Feed File: {feed_file_path}")
+    logging.info("---------------------------------------")
 
     # Ensure output directory exists
     try:
         os.makedirs(output_dir, exist_ok=True)
     except Exception as e:
-        print(f"Error creating output directory '{output_dir}': {e}")
+        logging.error(f"Error creating output directory '{output_dir}': {e}")
         sys.exit(1)
 
     # Start the HTTP server in a background thread
@@ -365,14 +376,14 @@ def main():
     while True:
         try:
             run_summary_cycle(feed_file_path)
-            print(f"Sleeping for {refresh_interval} seconds until the next cycle...")
+            logging.info(f"Sleeping for {refresh_interval} seconds until the next cycle...")
             time.sleep(refresh_interval)
         except KeyboardInterrupt:
-            print("\nShutdown requested. Exiting.")
+            logging.info("Shutdown requested. Exiting.")
             sys.exit(0)
         except Exception as e:
-            print(f"\n--- An unexpected error occurred in the main loop: {e} ---")
-            print(f"--- Will retry after {refresh_interval} seconds ---")
+            logging.error(f"An unexpected error occurred in the main loop: {e}", exc_info=True) # Log traceback
+            logging.info(f"Will retry after {refresh_interval} seconds.")
             time.sleep(refresh_interval)
 
 
