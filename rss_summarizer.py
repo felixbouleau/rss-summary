@@ -288,12 +288,13 @@ def run_summary_cycle(feed_file_path):
     all_entries = []
     # Get entries from the last 24 hours for each feed
     for feed_url in feed_urls:
-        print(f"Fetching entries from: {feed_url}")
+        # Fetch entries first
         entries = get_entries_from_last_24h(feed_url)
+        # Log the result after fetching
+        print(f"Fetched {len(entries)} items from feed: {feed_url}")
         if entries:
             all_entries.extend(entries)
-        else:
-            print(f"No recent entries found for: {feed_url}")
+        # No need for an else here, the count in the log message indicates 0 entries
 
     if not all_entries:
         print("No new entries found across all feeds in the last 24 hours.")
