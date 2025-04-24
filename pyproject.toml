@@ -9,4 +9,5 @@ dependencies = [
     "feedparser",
     "python-dateutil",
     "PyYAML",
+    "feedgen",
 ]
