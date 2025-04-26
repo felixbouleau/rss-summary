@@ -1,9 +1,6 @@
-version: '3.8'
-
 services:
   rss-summarizer:
     build: .
-    container_name: rss-summarizer-app
     env_file:
       - .env
     volumes:
