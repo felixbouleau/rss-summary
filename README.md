@@ -1,6 +1,6 @@
 # RSS Feed Summarizer
 
-This project fetches posts from an RSS feed and summarizes them using LLMs.
+This project fetches posts from an RSS feed and summarizes them using Anthropic's Claude AI.
 
 ## Features
 
