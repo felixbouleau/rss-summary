@@ -1,35 +1,15 @@
-# Example Docker Compose configuration for the RSS Summarizer service.
-
-version: '3.8' # Specify the Compose file format version
+version: '3.8'
 
 services:
   rss-summarizer:
-    build: . # Build the image using the Dockerfile in the current directory
-    container_name: rss-summarizer-app # Optional: Assign a specific name to the container
+    build: .
+    container_name: rss-summarizer-app
     env_file:
-      - .env # Load environment variables from a .env file in the same directory
+      - .env
     volumes:
-      # Mount the local 'rss' directory to '/app/rss' inside the container
-      # This persists the generated feed.xml file outside the container.
-      # Ensure the path '/app/rss' matches the RSS_OUTPUT_DIR used in your script (or its default).
       - ./rss:/app/rss
-
-      # Mount the local feeds configuration file into the container.
-      # Ensure the path '/app/feeds.yml' matches the RSS_FEEDS_CONFIG used in your script (or its default).
-      - ./feeds.yml:/app/feeds.yml:ro # Mount as read-only
-
-      # Mount the Jinja2 prompt template file into the container.
-      # Ensure the path '/app/prompt.j2' matches where the script looks for it.
-      - ./prompt.j2:/app/prompt.j2:ro # Mount as read-only
+      - ./feeds.yml:/app/feeds.yml:ro
+      - ./prompt.j2:/app/prompt.j2:ro
     ports:
-      # Map port 8080 on the host to port 8080 in the container.
-      # This allows accessing the feed server via http://localhost:8080/feed.xml
-      # Ensure the container port matches the RSS_SERVER_PORT used in your script (or its default).
       - "8080:8080"
-    restart: unless-stopped # Restart the container automatically unless it was manually stopped
-
-# Note: Before running 'docker-compose up', ensure you have:
-# 1. Created a '.env' file with necessary environment variables (e.g., ANTHROPIC_API_KEY).
-# 2. A valid 'feeds.yml' file.
-# 3. A valid 'prompt.j2' file.
-# 4. A 'Dockerfile' that correctly builds your application.
+    restart: unless-stopped
