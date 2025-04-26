@@ -316,18 +316,24 @@ def summarize_with_llm(entries):
             # For Claude via llm-anthropic, max_tokens is a standard parameter.
             max_tokens=max_tokens
         )
+        logging.info(f"LLM response received (HTTP 200 OK). Waiting for full text content...")
         # response.text() handles potential streaming and returns the full string
         summary_text = response.text()
-        logging.info(f"Successfully received summary from LLM model {model.model_id}.")
+        logging.info(f"Full text content received from LLM model {model.model_id}.")
         # Optional: Log token usage if needed
         # try:
         #     usage = response.usage()
-        #     logging.info(f"LLM Usage - Input: {usage.input}, Output: {usage.output}")
-        # except Exception: # Not all models might support usage tracking easily
-        #     logging.debug("Could not retrieve token usage information.")
+        #     # Example assuming usage is a dict-like object or has attributes
+        #     input_tokens = getattr(usage, 'input_tokens', None) or usage.get('input_tokens', 'N/A')
+        #     output_tokens = getattr(usage, 'output_tokens', None) or usage.get('output_tokens', 'N/A')
+        #     logging.info(f"LLM Usage - Input Tokens: {input_tokens}, Output Tokens: {output_tokens}")
+        # except AttributeError: # Handle cases where usage object structure is different
+        #     logging.debug("Could not retrieve token usage information (AttributeError). Usage object: %s", usage)
+        # except Exception as usage_exc: # Catch other potential errors
+        #     logging.debug("Could not retrieve token usage information: %s", usage_exc)
         return summary_text
     except Exception as e:
-        logging.error(f"Error calling LLM model {model.model_id}: {e}")
+        logging.error(f"Error calling LLM model {model.model_id}: {e}", exc_info=True) # Add traceback
         return None
 
 def run_summary_cycle(feed_file_path):
