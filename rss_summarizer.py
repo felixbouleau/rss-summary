@@ -322,7 +322,7 @@ def summarize_with_llm(entries):
         logging.info(f"Full text content received from LLM model {model.model_id}.")
         # Optional: Log token usage if needed
         # try:
-        #     usage = response.usage()
+        #     usage = response.usage # Corrected: usage is often an attribute or method call result
         #     # Example assuming usage is a dict-like object or has attributes
         #     input_tokens = getattr(usage, 'input_tokens', None) or usage.get('input_tokens', 'N/A')
         #     output_tokens = getattr(usage, 'output_tokens', None) or usage.get('output_tokens', 'N/A')
