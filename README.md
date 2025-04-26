@@ -1,40 +1,18 @@
 # RSS Feed Summarizer
 
-This project fetches posts from an RSS feed and summarizes them using Anthropic's Claude AI.
+This project fetches posts from an RSS feed and summarizes them using LLMs.
 
 ## Features
 
-- Fetches entries from an RSS feed (specifically configured for a Reddit worldnews feed)
-- Filters entries from the last 24 hours
-- Uses Claude AI to generate a concise summary of the content
+- Fetches entries from a list of RSS feed 
+- Filters entries from the last 24 hours (configurable)
+- Uses [LLM](https://github.com/simonw/llm) to generate a concise summary of the content with whatever model you prefer
 - Outputs the summary to the console
-
-## Requirements
-
-- Python 3.8+
-- An Anthropic API key
-
-## Installation
-
-This project uses `uv` for dependency management.
-
-```bash
-# Install dependencies
-uv pip install -e .
-```
 
 ## Usage
 
-1. Make sure your Anthropic API key is set as an environment variable:
-
 ```bash
-export ANTHROPIC_API_KEY="your-api-key-here"
-```
-
-2. Run the script:
-
-```bash
-uv run rss_summarizer.py
+ANTHROPIC_API_KEY="your-api-key-here" uv run rss_summarizer.py
 ```
 
 ## Configuration
