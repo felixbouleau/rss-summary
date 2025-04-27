@@ -24,6 +24,7 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Set VIRTUAL_ENV so tools like uv run work correctly without activation
 ENV VIRTUAL_ENV=/app/.venv
 ENV UV_CACHE_DIR=/app/uv-cache/
+COPY prompt.j2 .
 USER appuser
 
 CMD ["uv", "run", "rss_summarizer.py"]
