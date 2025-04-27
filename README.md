@@ -6,7 +6,7 @@ This project fetches posts from multiple RSS feeds, summarizes new entries using
 
 - Fetches entries from a configurable list of RSS feeds (`feeds.yml`).
 - Filters entries based on a configurable lookback period (e.g., last 24 hours).
-- Uses the [LLM](https://github.com/simonw/llm) library to generate summaries, allowing flexibility in choosing AI models (e.g., Claude, GPT).
+- Uses the [LLM](https://github.com/simonw/llm) library to generate summaries, allowing flexibility in choosing AI models.
 - Uses a Jinja2 template (`prompt.j2`) for customizable AI prompts.
 - Generates a persistent RSS feed (`rss/feed.xml`) containing the summaries.
 - Runs a simple HTTP server to make the generated feed accessible.
@@ -35,7 +35,7 @@ The easiest way to run the application is using Docker Compose.
     Open `.env` in a text editor and add your `ANTHROPIC_API_KEY` (or API key for your chosen LLM provider). You can also customize other variables like `LLM_MODEL`, `RSS_LOOKBACK_HOURS`, `RSS_SERVER_PORT`, etc.
 
 3.  **Configure Feeds:**
-    Edit `feeds.yml` to list the RSS feeds you want to summarize.
+    Create a `feeds.yml` (see `feeds.yml.example`) and list the RSS feeds you want to summarize.
 
 4.  **Customize Prompt (Optional):**
     Modify `prompt.j2` to change how the AI is prompted to create summaries.
