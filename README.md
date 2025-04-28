@@ -20,81 +20,27 @@ The easiest and recommended way to run the application is using Docker Compose.
 - Docker Engine
 - Docker Compose
 
-**Steps:**
+**Running**
 
-1.  **Clone the repository:**
-    ```bash
-    git clone https://github.com/your-username/rss-summary.git # Replace with your repo URL if needed
-    cd rss-summary
-    ```
-2.  **Configure Environment Variables:**
-    Copy the example environment file and edit it with your settings:
-    ```bash
-    cp .env.example .env
-    ```
-    Open `.env` in a text editor and add your `ANTHROPIC_API_KEY` (or API key for your chosen LLM provider). You can also customize other variables like `LLM_MODEL`, `RSS_LOOKBACK_HOURS`, `RSS_SERVER_PORT`, etc.
+I run this in Docker, side by side with miniflux/miniflux and johnny5w/reddit-top-rss:
 
-3.  **Configure Feeds:**
-    Create a `feeds.yml` (see `feeds.yml.example`) and list the RSS feeds you want to summarize.
+```yml
+    # [...]
+    rss-summarizer:
+        image: ghcr.io/felixbouleau/rss-summary:main
+        env_file:
+        - .env
+        volumes:
+        - rss-summary-feeds:/app/rss
+        - ./feeds.yml:/app/feeds.yml:ro
+        restart: unless-stopped
+volumes:
+    rss-summary-feeds:
+```
 
-4.  **Customize Prompt (Optional):**
-    Modify `prompt.j2` to change how the AI is prompted to create summaries.
+The only env var I set up in .env is ANTHROPIC_API_KEY, but you can check out .env.example for a full list of options. If you want to customize the prompt you can edit prompt.j2 and bind mount it into `/app` to replace the default one.
 
-5.  **Build and Run:**
-    ```bash
-    docker-compose up --build -d
-    ```
-    This command builds the Docker image (if it doesn't exist) and starts the service in the background.
-
-6.  **Access the Feed:**
-    The generated summary feed will be available at `http://localhost:8080/feed.xml` (or the port specified in your `.env` file). The feed file is also persisted in the local `./rss` directory.
-
-7.  **View Logs:**
-    ```bash
-    docker-compose logs -f
-    ```
-
-8.  **Stop the Service:**
-    ```bash
-    docker-compose down
-    ```
-
-## Configuration
-
-Configuration is managed through environment variables and configuration files:
-
--   **`.env` file:** Stores secrets (like API keys) and runtime settings (LLM model, ports, intervals, lookback period). See `.env.example` for available options.
--   **`feeds.yml`:** Defines the list of source RSS feeds to monitor.
--   **`prompt.j2`:** A Jinja2 template file used to construct the prompt sent to the LLM for summarization.
-
-## Alternative: Running Locally with `uv`
-
-If you prefer not to use Docker, you can run the script directly using `uv`.
-
-**Prerequisites:**
-- Python 3.x
-- `uv` (Python package installer/resolver)
-
-**Steps:**
-
-1.  **Install Dependencies:**
-    ```bash
-    uv sync
-    ```
-2.  **Set Environment Variables:**
-    You need to export the required environment variables directly in your shell or use a tool like `direnv`. Minimally, you need the API key for your chosen LLM provider:
-    ```bash
-    export ANTHROPIC_API_KEY="your-api-key-here"
-    # Export other variables as needed (LLM_MODEL, RSS_LOOKBACK_HOURS, etc.)
-    ```
-3.  **Configure Feeds & Prompt:**
-    Ensure `feeds.yml` and `prompt.j2` are configured as described above.
-
-4.  **Run the Script:**
-    ```bash
-    uv run python rss_summarizer.py
-    ```
-    The script will start, fetch feeds, generate the initial summary, start the HTTP server, and then enter its refresh cycle.
+I then add a new feed (`http://rss-summarizer:8080/feed.xml`) to Miniflux.
 
 ## License
 
