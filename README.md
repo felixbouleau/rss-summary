@@ -1,26 +1,16 @@
 # RSS Feed Summarizer
 
-This project fetches posts from multiple RSS feeds, summarizes new entries using an AI model via the [LLM](https://github.com/simonw/llm) library, and serves the generated summary as a new RSS feed.
-
-## Features
+This project:
 
 - Fetches entries from a configurable list of RSS feeds (`feeds.yml`).
 - Filters entries based on a configurable lookback period (e.g., last 24 hours).
-- Uses the [LLM](https://github.com/simonw/llm) library to generate summaries, allowing flexibility in choosing AI models.
+- Uses [LLM](https://github.com/simonw/llm) to generate summaries, allowing flexibility in choosing AI models.
 - Uses a Jinja2 template (`prompt.j2`) for customizable AI prompts.
 - Generates a persistent RSS feed (`rss/feed.xml`) containing the summaries.
 - Runs a simple HTTP server to make the generated feed accessible.
-- Containerized for easy deployment using Docker and Docker Compose (recommended).
 
-## Getting Started (Docker Compose)
 
-The easiest and recommended way to run the application is using Docker Compose.
-
-**Prerequisites:**
-- Docker Engine
-- Docker Compose
-
-**Running**
+## Running it
 
 I run this in Docker, side by side with miniflux/miniflux and johnny5w/reddit-top-rss:
 
@@ -44,4 +34,16 @@ I then add a new feed (`http://rss-summarizer:8080/feed.xml`) to Miniflux.
 
 ## License
 
-This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details (you may need to create this file).
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
