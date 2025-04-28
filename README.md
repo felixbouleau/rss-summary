@@ -10,11 +10,11 @@ This project fetches posts from multiple RSS feeds, summarizes new entries using
 - Uses a Jinja2 template (`prompt.j2`) for customizable AI prompts.
 - Generates a persistent RSS feed (`rss/feed.xml`) containing the summaries.
 - Runs a simple HTTP server to make the generated feed accessible.
-- Containerized for easy deployment using Docker and Docker Compose.
+- Containerized for easy deployment using Docker and Docker Compose (recommended).
 
-## Running with Docker Compose (Recommended)
+## Getting Started (Docker Compose)
 
-The easiest way to run the application is using Docker Compose.
+The easiest and recommended way to run the application is using Docker Compose.
 
 **Prerequisites:**
 - Docker Engine
@@ -59,7 +59,7 @@ The easiest way to run the application is using Docker Compose.
     docker-compose down
     ```
 
-## Configuration Details
+## Configuration
 
 Configuration is managed through environment variables and configuration files:
 
@@ -67,9 +67,9 @@ Configuration is managed through environment variables and configuration files:
 -   **`feeds.yml`:** Defines the list of source RSS feeds to monitor.
 -   **`prompt.j2`:** A Jinja2 template file used to construct the prompt sent to the LLM for summarization.
 
-## Running Locally with `uv`
+## Alternative: Running Locally with `uv`
 
-You can also run the script directly using `uv` if you prefer not to use Docker.
+If you prefer not to use Docker, you can run the script directly using `uv`.
 
 **Prerequisites:**
 - Python 3.x
@@ -98,4 +98,4 @@ You can also run the script directly using `uv` if you prefer not to use Docker.
 
 ## License
 
-MIT
+This project is licensed under the GNU General Public License v3.0 - see the [LICENSE](LICENSE) file for details (you may need to create this file).
