@@ -12,7 +12,7 @@ This project:
 
 ## Running it
 
-I run this in Docker, side by side with miniflux/miniflux and johnny5w/reddit-top-rss:
+I run this in Docker, side by side with [Miniflux](https://github.com/miniflux/v2) and [reddit-top-rss](https://github.com/johnwarne/reddit-top-rss):
 
 ```yml
     # [...]
