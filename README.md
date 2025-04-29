@@ -28,7 +28,7 @@ volumes:
     rss-summary-feeds:
 ```
 
-The only env var I set up in .env is ANTHROPIC_API_KEY, but you can check out .env.example for a full list of options. If you want to customize the prompt you can edit prompt.j2 and bind mount it into `/app` to replace the default one.
+The only thing I set up in .env is ANTHROPIC_API_KEY, but you can check out .env.example for a full list of options. If you want to customize the prompt you can edit prompt.j2 and bind mount it into `/app` to replace the default one.
 
 I then add a new feed (`http://rss-summarizer:8080/feed.xml`) to Miniflux.
 
