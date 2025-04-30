@@ -12,4 +12,5 @@ dependencies = [
     "PyYAML",
     "feedgen",
     "Jinja2", # Add Jinja2 dependency
+    "llm-gemini>=0.18.1",
 ]

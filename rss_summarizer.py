@@ -314,7 +314,7 @@ def summarize_with_llm(entries):
             # Pass max_tokens as an option if the model supports it
             # Note: Check model options with 'llm models --options'
             # For Claude via llm-anthropic, max_tokens is a standard parameter.
-            max_tokens=max_tokens
+            #max_tokens=max_tokens
         )
         logging.info(f"LLM response received (HTTP 200 OK). Waiting for full text content...")
         # response.text() handles potential streaming and returns the full string
