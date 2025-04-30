@@ -21,6 +21,9 @@ import threading
 import functools # For http server directory binding
 import logging
 from jinja2 import Environment, FileSystemLoader, select_autoescape # Add Jinja2 imports
+from apscheduler.schedulers.blocking import BlockingScheduler
+from apscheduler.triggers.cron import CronTrigger
+from apscheduler.schedulers import base
 
 def get_recent_entries(feed_url):
     """
@@ -388,19 +391,24 @@ def main():
     # Configuration from environment variables
     output_dir = os.environ.get("RSS_OUTPUT_DIR", "./rss")
     server_port = int(os.environ.get("RSS_SERVER_PORT", 8080))
-    refresh_interval = int(os.environ.get("RSS_REFRESH_INTERVAL", 86400)) # Default 24 hours
+    # Default cron schedule: daily at 9:00 AM UTC
+    cron_schedule = os.environ.get("RSS_CRON_SCHEDULE", "0 9 * * *")
     feed_filename = "feed.xml"
     feed_file_path = os.path.join(output_dir, feed_filename)
 
     # --- Configure Logging ---
-    logging.basicConfig(level=logging.INFO, 
+    logging.basicConfig(level=logging.INFO,
                         format='%(asctime)s - %(levelname)s - %(message)s',
                         datefmt='%Y-%m-%d %H:%M:%S')
+    # Make APScheduler less verbose by default
+    logging.getLogger('apscheduler.executors.default').setLevel(logging.WARNING)
+    logging.getLogger('apscheduler.scheduler').setLevel(logging.INFO)
+
 
     logging.info("--- RSS Summarizer Service Starting ---")
     logging.info(f"Output Directory: {os.path.abspath(output_dir)}")
     logging.info(f"Server Port: {server_port}")
-    logging.info(f"Refresh Interval: {refresh_interval} seconds")
+    logging.info(f"Cron Schedule: '{cron_schedule}' (UTC)")
     logging.info(f"Feed File: {feed_file_path}")
     logging.info("---------------------------------------")
 
@@ -414,19 +422,52 @@ def main():
     # Start the HTTP server in a background thread
     start_http_server(output_dir, server_port)
 
-    # Run the summary generation loop
-    while True:
-        try:
-            run_summary_cycle(feed_file_path)
-            logging.info(f"Sleeping for {refresh_interval} seconds until the next cycle...")
-            time.sleep(refresh_interval)
-        except KeyboardInterrupt:
-            logging.info("Shutdown requested. Exiting.")
-            sys.exit(0)
-        except Exception as e:
-            logging.error(f"An unexpected error occurred in the main loop: {e}", exc_info=True) # Log traceback
-            logging.info(f"Will retry after {refresh_interval} seconds.")
-            time.sleep(refresh_interval)
+    # --- Set up Scheduler ---
+    scheduler = BlockingScheduler(timezone="UTC") # Use UTC for consistency
+
+    try:
+        # Schedule the first run immediately, then follow the cron schedule
+        scheduler.add_job(
+            run_summary_cycle,
+            args=[feed_file_path],
+            id='initial_summary_run', # Give the job an ID
+            name='Run summary cycle once on startup'
+        )
+        logging.info("Scheduled initial summary run.")
+
+        # Schedule the recurring job based on the cron string
+        scheduler.add_job(
+            run_summary_cycle,
+            trigger=CronTrigger.from_crontab(cron_schedule, timezone="UTC"),
+            args=[feed_file_path],
+            id='recurring_summary_run', # Give the job an ID
+            name=f'Run summary cycle based on cron: {cron_schedule}',
+            replace_existing=True # Replace if ID exists (useful for potential restarts)
+        )
+        logging.info(f"Scheduled recurring summary run with cron: '{cron_schedule}' (UTC)")
+
+    except ValueError as e:
+        logging.error(f"Invalid cron string format '{cron_schedule}': {e}")
+        logging.error("Please check the RSS_CRON_SCHEDULE environment variable.")
+        sys.exit(1)
+    except Exception as e:
+        logging.error(f"Error setting up scheduler: {e}", exc_info=True)
+        sys.exit(1)
+
+
+    logging.info("Scheduler started. Press Ctrl+C to exit.")
+    try:
+        # Start the scheduler (this blocks the main thread)
+        scheduler.start()
+    except (KeyboardInterrupt, SystemExit):
+        logging.info("Shutdown requested. Stopping scheduler...")
+        scheduler.shutdown()
+        logging.info("Scheduler stopped. Exiting.")
+        sys.exit(0)
+    except Exception as e:
+        logging.error(f"An unexpected error occurred in the scheduler: {e}", exc_info=True)
+        scheduler.shutdown() # Attempt graceful shutdown
+        sys.exit(1)
 
 
 if __name__ == "__main__":
