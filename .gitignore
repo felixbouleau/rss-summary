@@ -52,3 +52,5 @@ htmlcov/
 .ruff_cache/
 __pypackages__/
 .aider*
+
+rss/
