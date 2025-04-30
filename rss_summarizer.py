@@ -121,13 +121,17 @@ def generate_rss_feed(summary_text, feed_file_path):
 
     # --- Add the NEW entry first ---
     fe_new = fg.add_entry(order='prepend') # Add new entry at the beginning
-    now = datetime.datetime.now(datetime.timezone.utc)
-    entry_title = f"Summary for {now.strftime('%Y-%m-%d %H:%M:%S UTC')}"
+    # Get current time in local timezone
+    now_local = datetime.datetime.now().astimezone() 
+    # Format title with local time and timezone name (e.g., EST, PDT)
+    entry_title = f"Summary for {now_local.strftime('%Y-%m-%d %H:%M:%S %Z')}" 
     fe_new.title(entry_title)
-    fe_new.id(f"urn:uuid:{now.isoformat()}") # Unique ID for the new entry
+    # Use local time's ISO format for ID
+    fe_new.id(f"urn:uuid:{now_local.isoformat()}") 
     fe_new.link(href=feed_link) # Link entry back to the feed itself (can be improved later)
     fe_new.content(summary_text, type='html')
-    fe_new.pubDate(now)
+    # Use the timezone-aware local datetime for pubDate
+    fe_new.pubDate(now_local) 
 
     # --- Load existing entries if feed file exists ---
     parsed_feed = None
@@ -186,14 +190,24 @@ def generate_rss_feed(summary_text, feed_file_path):
             # Use published_parsed or updated_parsed from feedparser
             pub_date_parsed = entry.get('published_parsed') or entry.get('updated_parsed')
             if pub_date_parsed:
-                 # Convert struct_time to datetime
-                 dt_aware = datetime.datetime.fromtimestamp(time.mktime(pub_date_parsed), tz=datetime.timezone.utc)
-                 fe_old.pubDate(dt_aware)
+                 # Convert struct_time (often UTC) to a timezone-aware UTC datetime
+                 dt_aware_utc = datetime.datetime.fromtimestamp(time.mktime(pub_date_parsed), tz=datetime.timezone.utc)
+                 # Convert UTC datetime to local timezone
+                 dt_local = dt_aware_utc.astimezone()
+                 fe_old.pubDate(dt_local)
             elif entry.get('published'): # Fallback to parsing string if parsed version not available
                  try:
-                     fe_old.pubDate(date_parser.parse(entry.get('published')))
-                 except Exception:
-                     pass # Ignore if date parsing fails
+                     # Parse the date string
+                     dt_parsed = date_parser.parse(entry.get('published'))
+                     # Ensure it's timezone-aware (assume UTC if naive)
+                     if dt_parsed.tzinfo is None:
+                         dt_parsed = dt_parsed.replace(tzinfo=datetime.timezone.utc)
+                     # Convert to local timezone
+                     dt_local = dt_parsed.astimezone()
+                     fe_old.pubDate(dt_local)
+                 except Exception as date_exc:
+                     logging.warning(f"Could not parse or convert date for old entry '{entry.get('title', '')}': {date_exc}")
+                     pass # Ignore if date parsing/conversion fails
 
     else:
         # Set default metadata if feed didn't exist or parsing failed
