@@ -408,7 +408,7 @@ def main():
     logging.info("--- RSS Summarizer Service Starting ---")
     logging.info(f"Output Directory: {os.path.abspath(output_dir)}")
     logging.info(f"Server Port: {server_port}")
-    logging.info(f"Cron Schedule: '{cron_schedule}' (UTC)")
+    logging.info(f"Cron Schedule: '{cron_schedule}' (Local Time)")
     logging.info(f"Feed File: {feed_file_path}")
     logging.info("---------------------------------------")
 
@@ -423,7 +423,8 @@ def main():
     start_http_server(output_dir, server_port)
 
     # --- Set up Scheduler ---
-    scheduler = BlockingScheduler(timezone="UTC") # Use UTC for consistency
+    # By default, BlockingScheduler uses the system's local timezone
+    scheduler = BlockingScheduler() 
 
     try:
         # Schedule the first run immediately, then follow the cron schedule
@@ -436,15 +437,16 @@ def main():
         logging.info("Scheduled initial summary run.")
 
         # Schedule the recurring job based on the cron string
+        # CronTrigger uses the scheduler's timezone by default (which is now local)
         scheduler.add_job(
             run_summary_cycle,
-            trigger=CronTrigger.from_crontab(cron_schedule, timezone="UTC"),
+            trigger=CronTrigger.from_crontab(cron_schedule),
             args=[feed_file_path],
             id='recurring_summary_run', # Give the job an ID
             name=f'Run summary cycle based on cron: {cron_schedule}',
             replace_existing=True # Replace if ID exists (useful for potential restarts)
         )
-        logging.info(f"Scheduled recurring summary run with cron: '{cron_schedule}' (UTC)")
+        logging.info(f"Scheduled recurring summary run with cron: '{cron_schedule}' (Local Time)")
 
     except ValueError as e:
         logging.error(f"Invalid cron string format '{cron_schedule}': {e}")
